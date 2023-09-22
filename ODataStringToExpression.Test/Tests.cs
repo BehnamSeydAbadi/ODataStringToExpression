@@ -34,6 +34,16 @@ public class Tests
         Assert(expecting, expected: p => p.Price < 20);
     }
 
+    [Fact]
+    public void price_ge_10()
+    {
+        var odataUrl = "Price ge 10";
+
+        var expecting = odataUrl.ToExpression<Product>();
+
+        Assert(expecting, expected: p => p.Price >= 10);
+    }
+
 
     private void Assert(
             Expression<Func<Product, bool>> expecting,

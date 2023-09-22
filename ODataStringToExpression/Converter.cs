@@ -34,6 +34,10 @@ namespace ODataStringToExpression
             {
                 binaryExpression = Expression.LessThan(propertyExpression, valueExpression);
             }
+            else if (@operator == "ge")
+            {
+                binaryExpression = Expression.GreaterThanOrEqual(propertyExpression, valueExpression);
+            }
 
             return Expression.Lambda<Func<T, bool>>(binaryExpression, paramExpression);
         }
