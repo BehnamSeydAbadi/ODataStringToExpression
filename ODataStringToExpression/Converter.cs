@@ -10,19 +10,28 @@ namespace ODataStringToExpression
             var splittedQuery = query.Split(' ');
 
             var propertyName = splittedQuery[0];
+            var @operator = splittedQuery[1];
             var value = splittedQuery[2];
 
-            //p =>
             var paramExpression = Expression.Parameter(typeof(T), "p");
 
-            //p => p.Price
             var propertyExpression = Expression.Property(paramExpression, propertyName);
 
             var valueExpression = Expression.Constant(decimal.Parse(value));
 
-            var greaterThanExpression = Expression.GreaterThan(propertyExpression, valueExpression);
 
-            return Expression.Lambda<Func<T, bool>>(greaterThanExpression, paramExpression);
+            BinaryExpression binaryExpression = null;
+
+            if (@operator == "gt")
+            {
+                binaryExpression = Expression.GreaterThan(propertyExpression, valueExpression);
+            }
+            else if (@operator == "eq")
+            {
+                binaryExpression = Expression.Equal(propertyExpression, valueExpression);
+            }
+
+            return Expression.Lambda<Func<T, bool>>(binaryExpression, paramExpression);
         }
     }
 }
