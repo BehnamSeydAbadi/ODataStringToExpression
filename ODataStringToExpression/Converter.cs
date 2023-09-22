@@ -30,6 +30,10 @@ namespace ODataStringToExpression
             {
                 binaryExpression = Expression.Equal(propertyExpression, valueExpression);
             }
+            else if (@operator == "lt")
+            {
+                binaryExpression = Expression.LessThan(propertyExpression, valueExpression);
+            }
 
             return Expression.Lambda<Func<T, bool>>(binaryExpression, paramExpression);
         }
