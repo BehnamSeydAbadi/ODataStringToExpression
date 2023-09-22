@@ -38,6 +38,10 @@ namespace ODataStringToExpression
             {
                 binaryExpression = Expression.GreaterThanOrEqual(propertyExpression, valueExpression);
             }
+            else if (@operator == "le")
+            {
+                binaryExpression = Expression.LessThanOrEqual(propertyExpression, valueExpression);
+            }
 
             return Expression.Lambda<Func<T, bool>>(binaryExpression, paramExpression);
         }
