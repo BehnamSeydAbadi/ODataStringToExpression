@@ -24,6 +24,8 @@ namespace ODataStringToExpression
                     return Expression.GreaterThanOrEqual(left, right);
                 case "le":
                     return Expression.LessThanOrEqual(left, right);
+                case "ne":
+                    return Expression.NotEqual(left, right);
                 default:
                     throw new NotImplementedException(_odataOperator);
             }

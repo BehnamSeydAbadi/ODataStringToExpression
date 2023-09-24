@@ -25,6 +25,16 @@ public class Tests
     }
 
     [Fact]
+    public void price_ne_5()
+    {
+        var odataUrl = "Price ne 5";
+
+        var expecting = new ODataToExpression().Convert<Product>(odataUrl);
+
+        Assert(expecting, expected: p => p.Price != 5);
+    }
+
+    [Fact]
     public void price_lt_20()
     {
         var odataUrl = "Price lt 20";
