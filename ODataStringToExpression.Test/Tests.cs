@@ -5,7 +5,7 @@ namespace ODataStringToExpression.Test;
 public class Tests
 {
     [Fact]
-    public void price_eq_5()
+    public void Price_eq_5()
     {
         var odataUrl = "Price eq 5";
 
@@ -15,7 +15,7 @@ public class Tests
     }
 
     [Fact]
-    public void price_ne_5()
+    public void Price_ne_5()
     {
         var odataUrl = "Price ne 5";
 
@@ -25,7 +25,7 @@ public class Tests
     }
 
     [Fact]
-    public void price_gt_10()
+    public void Price_gt_10()
     {
         var odataUrl = "Price gt 10";
 
@@ -35,7 +35,7 @@ public class Tests
     }
 
     [Fact]
-    public void price_ge_10()
+    public void Price_ge_10()
     {
         var odataUrl = "Price ge 10";
 
@@ -45,7 +45,7 @@ public class Tests
     }
 
     [Fact]
-    public void price_lt_20()
+    public void Price_lt_20()
     {
         var odataUrl = "Price lt 20";
 
@@ -55,7 +55,7 @@ public class Tests
     }
 
     [Fact]
-    public void price_le_20()
+    public void Price_le_20()
     {
         var odataUrl = "Price le 20";
 
@@ -65,7 +65,7 @@ public class Tests
     }
 
     [Fact]
-    public void price_gt_10_and_lt_20()
+    public void Price_gt_10_and_lt_20()
     {
         var odataUrl = "Price gt 10 and Price lt 20";
 
@@ -75,7 +75,7 @@ public class Tests
     }
 
     [Fact]
-    public void price_gt_10_or_lt_20()
+    public void Price_gt_10_or_lt_20()
     {
         var odataUrl = "Price gt 10 or Price lt 20";
 
@@ -85,7 +85,7 @@ public class Tests
     }
 
     [Fact]
-    public void status_eq_available()
+    public void Status_eq_available()
     {
         var odataUrl = $"Status eq {(int)ProductStatus.Available}";
 
