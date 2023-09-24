@@ -64,6 +64,16 @@ public class Tests
         Assert(expecting, expected: p => p.Price > 10 && p.Price < 20);
     }
 
+    [Fact]
+    public void price_gt_10_or_lt_20()
+    {
+        var odataUrl = "Price gt 10 or Price lt 20";
+
+        var expecting = new ODataToExpression().Convert<Product>(odataUrl);
+
+        Assert(expecting, expected: p => p.Price > 10 || p.Price < 20);
+    }
+
 
     private void Assert(
             Func<Product, bool> expecting,

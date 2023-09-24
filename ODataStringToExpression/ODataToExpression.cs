@@ -12,7 +12,7 @@ namespace ODataStringToExpression
 
             var expressions = new List<BinaryExpression>();
 
-            foreach (var subQuery in query.Split(new[] { "and" }, StringSplitOptions.None))
+            foreach (var subQuery in query.Split(new[] { "and", "or" }, StringSplitOptions.None))
             {
                 var tokens = subQuery.Trim().Split(' ');
 
@@ -26,7 +26,12 @@ namespace ODataStringToExpression
             }
 
             if (expressions.Count > 1)
-                return Expression.Lambda<Func<T, bool>>(Expression.And(expressions[0], expressions[1]), paramExpression).Compile();
+            {
+                if (query.Contains("and"))
+                    return Expression.Lambda<Func<T, bool>>(Expression.And(expressions[0], expressions[1]), paramExpression).Compile();
+                else
+                    return Expression.Lambda<Func<T, bool>>(Expression.Or(expressions[0], expressions[1]), paramExpression).Compile();
+            }
 
             return Expression.Lambda<Func<T, bool>>(expressions[0], paramExpression).Compile();
         }
