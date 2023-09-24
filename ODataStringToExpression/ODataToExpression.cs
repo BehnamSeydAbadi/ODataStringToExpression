@@ -39,9 +39,21 @@ namespace ODataStringToExpression
         private BinaryExpression CreateBinaryExpression<T>(
                 string left, string @operator, string right, ParameterExpression paramExpression)
         {
+            var property = typeof(T).GetProperty(left);
+            var propertyType = property.PropertyType;
+
             var propertyExpression = Expression.Property(paramExpression, left);
 
-            var valueExpression = Expression.Constant(decimal.Parse(right));
+            ConstantExpression valueExpression;
+
+            if (propertyType.IsEnum)
+            {
+                var @enum = Enum.Parse(propertyType, right);
+
+                valueExpression = Expression.Constant(@enum);
+            }
+            else
+                valueExpression = Expression.Constant(System.Convert.ChangeType(right, propertyType));
 
             return BinaryOperatorFactory.GetInstance(@operator)
                    .CreateExpression(propertyExpression, valueExpression);

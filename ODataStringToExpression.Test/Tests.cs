@@ -5,16 +5,6 @@ namespace ODataStringToExpression.Test;
 public class Tests
 {
     [Fact]
-    public void price_gt_10()
-    {
-        var odataUrl = "Price gt 10";
-
-        var expecting = new ODataToExpression().Convert<Product>(odataUrl);
-
-        Assert(expecting, expected: p => p.Price > 10);
-    }
-
-    [Fact]
     public void price_eq_5()
     {
         var odataUrl = "Price eq 5";
@@ -35,13 +25,13 @@ public class Tests
     }
 
     [Fact]
-    public void price_lt_20()
+    public void price_gt_10()
     {
-        var odataUrl = "Price lt 20";
+        var odataUrl = "Price gt 10";
 
         var expecting = new ODataToExpression().Convert<Product>(odataUrl);
 
-        Assert(expecting, expected: p => p.Price < 20);
+        Assert(expecting, expected: p => p.Price > 10);
     }
 
     [Fact]
@@ -52,6 +42,16 @@ public class Tests
         var expecting = new ODataToExpression().Convert<Product>(odataUrl);
 
         Assert(expecting, expected: p => p.Price >= 10);
+    }
+
+    [Fact]
+    public void price_lt_20()
+    {
+        var odataUrl = "Price lt 20";
+
+        var expecting = new ODataToExpression().Convert<Product>(odataUrl);
+
+        Assert(expecting, expected: p => p.Price < 20);
     }
 
     [Fact]
@@ -84,6 +84,15 @@ public class Tests
         Assert(expecting, expected: p => p.Price > 10 || p.Price < 20);
     }
 
+    [Fact]
+    public void status_eq_available()
+    {
+        var odataUrl = $"Status eq {(int)ProductStatus.Available}";
+
+        var expecting = new ODataToExpression().Convert<Product>(odataUrl);
+
+        Assert(expecting, expected: p => p.Status == ProductStatus.Available);
+    }
 
     private void Assert(
             Func<Product, bool> expecting,
