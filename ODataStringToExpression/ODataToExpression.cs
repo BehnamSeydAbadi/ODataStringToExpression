@@ -40,23 +40,23 @@ namespace ODataStringToExpression
                 string left, string @operator, string right, ParameterExpression paramExpression)
         {
             var property = typeof(T).GetProperty(left);
-            var propertyType = property.PropertyType;
 
             var propertyExpression = Expression.Property(paramExpression, left);
-
-            ConstantExpression valueExpression;
-
-            if (propertyType.IsEnum)
-            {
-                var @enum = Enum.Parse(propertyType, right);
-
-                valueExpression = Expression.Constant(@enum);
-            }
-            else
-                valueExpression = Expression.Constant(System.Convert.ChangeType(right, propertyType));
+            var valueExpression = GetValueExpression(right, property.PropertyType);
 
             return BinaryOperatorFactory.GetInstance(@operator)
                    .CreateExpression(propertyExpression, valueExpression);
+        }
+
+        private ConstantExpression GetValueExpression(string right, Type propertyType)
+        {
+            if (propertyType.IsEnum)
+            {
+                var @enum = Enum.Parse(propertyType, right);
+                return Expression.Constant(@enum);
+            }
+            else
+                return Expression.Constant(System.Convert.ChangeType(right, propertyType));
         }
     }
 }
