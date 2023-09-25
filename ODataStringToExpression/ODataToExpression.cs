@@ -10,7 +10,7 @@ namespace ODataStringToExpression
         {
             var paramExpression = Expression.Parameter(typeof(T), "p");
 
-            var expressions = new List<BinaryExpression>();
+            var binaryExpressions = new List<BinaryExpression>();
 
             foreach (var subQuery in query.Split(new[] { "and", "or" }, StringSplitOptions.None))
             {
@@ -22,18 +22,34 @@ namespace ODataStringToExpression
 
                 var binaryExpression = CreateBinaryExpression<T>(left, @operator, right, paramExpression);
 
-                expressions.Add(binaryExpression);
+                binaryExpressions.Add(binaryExpression);
             }
 
-            if (expressions.Count > 1)
+            if (binaryExpressions.Count > 1)
             {
                 if (query.Contains("and"))
-                    return Expression.Lambda<Func<T, bool>>(Expression.And(expressions[0], expressions[1]), paramExpression).Compile();
+                {
+                    var andExpression = Expression.And(binaryExpressions[0], binaryExpressions[1]);
+
+                    if (binaryExpressions.Count > 2)
+                        for (int i = 2; i < binaryExpressions.Count; i++)
+                            andExpression = Expression.And(andExpression, binaryExpressions[i]);
+
+                    return Expression.Lambda<Func<T, bool>>(andExpression, paramExpression).Compile();
+                }
                 else
-                    return Expression.Lambda<Func<T, bool>>(Expression.Or(expressions[0], expressions[1]), paramExpression).Compile();
+                {
+                    var andExpression = Expression.Or(binaryExpressions[0], binaryExpressions[1]);
+
+                    if (binaryExpressions.Count > 2)
+                        for (int i = 2; i < binaryExpressions.Count; i++)
+                            andExpression = Expression.Or(andExpression, binaryExpressions[i]);
+
+                    return Expression.Lambda<Func<T, bool>>(andExpression, paramExpression).Compile();
+                }
             }
 
-            return Expression.Lambda<Func<T, bool>>(expressions[0], paramExpression).Compile();
+            return Expression.Lambda<Func<T, bool>>(binaryExpressions[0], paramExpression).Compile();
         }
 
         private BinaryExpression CreateBinaryExpression<T>(

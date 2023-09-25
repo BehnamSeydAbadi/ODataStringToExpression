@@ -94,11 +94,26 @@ public class Tests
         Assert(expecting, expected: p => p.Status == ProductStatus.Available);
     }
 
+    [Fact]
+    public void Price_gt_5_and_Price_le_20_Status_eq_Available()
+    {
+        var odataUrl = $"Price gt 5 and Price le 20 and Status eq {(int)ProductStatus.Available}";
+
+        var expecting = new ODataToExpression().Convert<Product>(odataUrl);
+
+        Assert(expecting, expected: p => p.Price > 5 && p.Price < 20 && p.Status == ProductStatus.Available);
+    }
+
     private void Assert(
             Func<Product, bool> expecting,
             Func<Product, bool> expected)
     {
-        var product = new Product { Price = 10 };
+        var product = new Product
+        {
+            Price = 10,
+            Status = ProductStatus.Available,
+            CreateDate = DateTime.Now
+        };
 
         var expectingResult = expecting(product);
         var expectedResult = expected(product);
