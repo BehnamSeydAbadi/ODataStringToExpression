@@ -128,6 +128,18 @@ public class Tests
         Assert(expecting, expected: p => p.CreateDate == dateTime);
     }
 
+    [Fact]
+    public void Status_in_1_2()
+    {
+        var odataUrl = $"Status in ({(int)ProductStatus.Available}, {(int)ProductStatus.SoldOut})";
+
+        var expecting = new ODataToExpression().Convert<Product>(odataUrl);
+
+        var status = new[] { ProductStatus.Available, ProductStatus.SoldOut };
+
+        Assert(expecting, expected: p => status.Contains(p.Status));
+    }
+
     private void Assert(
             Func<Product, bool> expecting,
             Func<Product, bool> expected)

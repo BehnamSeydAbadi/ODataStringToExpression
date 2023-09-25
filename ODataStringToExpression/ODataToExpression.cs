@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 
 namespace ODataStringToExpression
 {
@@ -10,46 +12,72 @@ namespace ODataStringToExpression
         {
             var paramExpression = Expression.Parameter(typeof(T), "p");
 
-            var binaryExpressions = new List<BinaryExpression>();
+            var expressions = new List<Expression>();
 
             foreach (var subQuery in query.Split(new[] { "and", "or" }, StringSplitOptions.None))
             {
-                var tokens = subQuery.Trim().Split(' ');
+                var (left, @operator, right) = GetElementsOfQuery(subQuery);
 
-                var left = tokens[0];
-                var @operator = tokens[1];
-                var right = tokens[2];
+                if (@operator.IsBinaryExpression())
+                {
+                    var expression = CreateBinaryExpression<T>(
+                    left.Trim(), @operator.Trim(), right.Trim(), paramExpression);
 
-                var binaryExpression = CreateBinaryExpression<T>(left, @operator, right, paramExpression);
+                    expressions.Add(expression);
+                }
+                else if (@operator.IsMethodCallExpression())
+                {
+                    var expression = CreateMethodCallExpression<T>(
+                    left.Trim(), @operator.Trim(), right.Trim(), paramExpression);
 
-                binaryExpressions.Add(binaryExpression);
+                    expressions.Add(expression);
+                }
+                else
+                    throw new NotImplementedException();
             }
 
-            if (binaryExpressions.Count > 1)
+            if (expressions.Count > 1)
             {
                 if (query.Contains("and"))
                 {
-                    var andExpression = Expression.And(binaryExpressions[0], binaryExpressions[1]);
+                    var andExpression = Expression.And(expressions[0], expressions[1]);
 
-                    if (binaryExpressions.Count > 2)
-                        for (int i = 2; i < binaryExpressions.Count; i++)
-                            andExpression = Expression.And(andExpression, binaryExpressions[i]);
+                    if (expressions.Count > 2)
+                        for (int i = 2; i < expressions.Count; i++)
+                            andExpression = Expression.And(andExpression, expressions[i]);
 
                     return Expression.Lambda<Func<T, bool>>(andExpression, paramExpression).Compile();
                 }
                 else
                 {
-                    var andExpression = Expression.Or(binaryExpressions[0], binaryExpressions[1]);
+                    var andExpression = Expression.Or(expressions[0], expressions[1]);
 
-                    if (binaryExpressions.Count > 2)
-                        for (int i = 2; i < binaryExpressions.Count; i++)
-                            andExpression = Expression.Or(andExpression, binaryExpressions[i]);
+                    if (expressions.Count > 2)
+                        for (int i = 2; i < expressions.Count; i++)
+                            andExpression = Expression.Or(andExpression, expressions[i]);
 
                     return Expression.Lambda<Func<T, bool>>(andExpression, paramExpression).Compile();
                 }
             }
 
-            return Expression.Lambda<Func<T, bool>>(binaryExpressions[0], paramExpression).Compile();
+            return Expression.Lambda<Func<T, bool>>(expressions[0], paramExpression).Compile();
+        }
+
+        private (string Left, string Operator, string Right) GetElementsOfQuery(string query)
+        {
+            string pattern;
+
+            if (Regex.IsMatch(query, RegularExpressions.ForInOperator))
+                pattern = RegularExpressions.ForInOperator;
+            else if (Regex.IsMatch(query, RegularExpressions.ForDateTimeAtRight))
+                pattern = RegularExpressions.ForDateTimeAtRight;
+            else if (Regex.IsMatch(query, RegularExpressions.ForNumericAtRight))
+                pattern = RegularExpressions.ForNumericAtRight;
+            else
+                throw new NotImplementedException();
+
+            var tokens = Regex.Match(query.Trim(), pattern).Groups;
+            return (tokens[1].Value, tokens[2].Value, tokens[3].Value);
         }
 
         private BinaryExpression CreateBinaryExpression<T>(
@@ -58,13 +86,31 @@ namespace ODataStringToExpression
             var property = typeof(T).GetProperty(left);
 
             var propertyExpression = Expression.Property(paramExpression, left);
-            var valueExpression = GetValueExpression(right, property.PropertyType);
+
+            var rightExpression = GetConstantExpression(right, property.PropertyType);
 
             return BinaryOperatorFactory.GetInstance(@operator)
-                   .CreateExpression(propertyExpression, valueExpression);
+                   .CreateExpression(propertyExpression, rightExpression);
         }
 
-        private ConstantExpression GetValueExpression(string right, Type propertyType)
+        private MethodCallExpression CreateMethodCallExpression<T>(
+                string left, string @operator, string right, ParameterExpression paramExpression)
+        {
+            var property = typeof(T).GetProperty(left);
+
+            var propertyValue = property.PropertyType;
+
+            var propertyExpression = Expression.Property(paramExpression, left);
+
+            var rightExpression = GetNewArrayExpression(right, propertyValue);
+
+            return Expression.Call(
+                   instance: rightExpression,
+                   method: typeof(Enumerable).MakeGenericType(propertyValue).GetMethod("Contains", new[] { typeof(IEnumerable<object>) }),
+                   arguments: propertyExpression);
+        }
+
+        private ConstantExpression GetConstantExpression(string right, Type propertyType)
         {
             if (propertyType.IsEnum)
             {
@@ -73,6 +119,22 @@ namespace ODataStringToExpression
             }
             else
                 return Expression.Constant(System.Convert.ChangeType(right, propertyType));
+        }
+
+        private NewArrayExpression GetNewArrayExpression(string right, Type propertyType)
+        {
+            var arrayValues = Regex.Match(right, RegularExpressions.ForElementsInArray)
+                .Groups[1].Value.Split(',').Select(v => v.Trim());
+
+            var constantExpressions = new List<ConstantExpression>();
+
+            foreach (var value in arrayValues)
+            {
+                var @enum = Enum.Parse(propertyType, value);
+                constantExpressions.Add(Expression.Constant(@enum));
+            }
+
+            return Expression.NewArrayInit(propertyType, constantExpressions);
         }
     }
 }

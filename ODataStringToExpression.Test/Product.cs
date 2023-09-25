@@ -10,6 +10,7 @@
     internal enum ProductStatus
     {
         SoldOut = 1,
-        Available
+        Available,
+        NotAvailable
     }
 }
