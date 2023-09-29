@@ -148,6 +148,15 @@ public class Tests
         Assert(expecting, expected: p => p.Price > 5 || p.Status == ProductStatus.SoldOut);
     }
 
+    [Fact]
+    public void Price_gt_5_and_Status_eq_Available_or_Price_le_20()
+    {
+        var odataUrl = $"Price gt 5 and (Status eq {(int)ProductStatus.Available} or Price le 20)";
+
+        var expecting = new ODataToExpression().Convert<Product>(odataUrl);
+
+        Assert(expecting, expected: p => p.Price > 5 && (p.Status == ProductStatus.Available || p.Price <= 20));
+    }
 
 
 
