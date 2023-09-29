@@ -94,11 +94,62 @@ public class Tests
         Assert(expecting, expected: p => p.Status == ProductStatus.Available);
     }
 
+    [Fact]
+    public void Price_gt_5_and_Price_le_20_Status_eq_Available()
+    {
+        var odataUrl = $"Price gt 5 and Price le 20 and Status eq {(int)ProductStatus.Available}";
+
+        var expecting = new ODataToExpression().Convert<Product>(odataUrl);
+
+        Assert(expecting, expected: p => p.Price > 5 && p.Price < 20 && p.Status == ProductStatus.Available);
+    }
+
+    [Fact]
+    public void CreateDate_eq_2014_06_26T03_30_00_000Z()
+    {
+        var odataUrl = $"CreateDate eq 2014-06-26T03:30:00.000Z";
+
+        var expecting = new ODataToExpression().Convert<Product>(odataUrl);
+
+        var dateTime = new DateTime(2014, 06, 26, 3, 30, 0);
+
+        Assert(expecting, expected: p => p.CreateDate == dateTime);
+    }
+
+    [Fact]
+    public void CreateDate_eq_2014_06_26()
+    {
+        var odataUrl = $"CreateDate eq 2014-06-26";
+
+        var expecting = new ODataToExpression().Convert<Product>(odataUrl);
+
+        var dateTime = new DateTime(2014, 06, 26);
+
+        Assert(expecting, expected: p => p.CreateDate == dateTime);
+    }
+
+    [Fact]
+    public void Status_in_1_2()
+    {
+        var odataUrl = $"Status in ({(int)ProductStatus.Available}, {(int)ProductStatus.SoldOut})";
+
+        var expecting = new ODataToExpression().Convert<Product>(odataUrl);
+
+        var status = new[] { ProductStatus.Available, ProductStatus.SoldOut };
+
+        Assert(expecting, expected: p => status.Contains(p.Status));
+    }
+
     private void Assert(
             Func<Product, bool> expecting,
             Func<Product, bool> expected)
     {
-        var product = new Product { Price = 10 };
+        var product = new Product
+        {
+            Price = 10,
+            Status = ProductStatus.Available,
+            CreateDate = DateTime.Now,
+        };
 
         var expectingResult = expecting(product);
         var expectedResult = expected(product);
