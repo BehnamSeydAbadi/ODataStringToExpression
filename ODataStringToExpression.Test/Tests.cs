@@ -158,6 +158,18 @@ public class Tests
         Assert(expecting, expected: p => p.Price > 5 && (p.Status == ProductStatus.Available || p.Price <= 20));
     }
 
+    [Fact]
+    public void CreateDate_gt_2014_06_26T03_30_00_000Z_and_Status_eq_Available()
+    {
+        var odataUrl = $"CreateDate gt 2014-06-26T03:30:00.000Z and Status eq {(int)ProductStatus.Available}";
+
+        var expecting = new ODataToExpression().Convert<Product>(odataUrl);
+
+        var dateTime = new DateTime(2014, 06, 26, 3, 30, 0);
+
+        Assert(expecting, expected: p => p.CreateDate > dateTime && p.Status == ProductStatus.Available);
+    }
+
 
 
     private void Assert(
