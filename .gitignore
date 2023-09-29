@@ -21,3 +21,5 @@ bin-release/
 *.user
 *.ncrunchproject
 *.ncrunchsolution
+/_NCrunch_ODataStringToExpression/ODataStringToExpression.crunchsolution.cache
+/_NCrunch_ODataStringToExpression/ODataStringToExpression.executiontimes.cache
