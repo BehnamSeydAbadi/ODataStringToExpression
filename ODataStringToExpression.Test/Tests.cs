@@ -1,5 +1,3 @@
-using System.Linq.Expressions;
-
 namespace ODataStringToExpression.Test;
 
 public class Tests
@@ -139,6 +137,19 @@ public class Tests
 
         Assert(expecting, expected: p => status.Contains(p.Status));
     }
+
+    [Fact]
+    public void Price_gt_5_or_Status_eq_SoldOut()
+    {
+        var odataUrl = $"Price gt 5 or Status eq {(int)ProductStatus.SoldOut}";
+
+        var expecting = new ODataToExpression().Convert<Product>(odataUrl);
+
+        Assert(expecting, expected: p => p.Price > 5 || p.Status == ProductStatus.SoldOut);
+    }
+
+
+
 
     private void Assert(
             Func<Product, bool> expecting,
