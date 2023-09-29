@@ -98,16 +98,19 @@ namespace ODataStringToExpression
         {
             var property = typeof(T).GetProperty(left);
 
-            var propertyValue = property.PropertyType;
+            var propertyType = property.PropertyType;
 
-            var propertyExpression = Expression.Property(paramExpression, left);
+            var leftExpression = Expression.Property(paramExpression, left);
 
-            var rightExpression = GetNewArrayExpression(right, propertyValue);
+            var rightExpression = GetListInitExpression(right, propertyType);
+
+            var method = typeof(List<>).MakeGenericType(propertyType)
+                .GetMethod("Contains", new[] { propertyType });
 
             return Expression.Call(
                    instance: rightExpression,
-                   method: typeof(Enumerable).MakeGenericType(propertyValue).GetMethod("Contains", new[] { typeof(IEnumerable<object>) }),
-                   arguments: propertyExpression);
+                   method,
+                   arguments: leftExpression);
         }
 
         private ConstantExpression GetConstantExpression(string right, Type propertyType)
@@ -121,7 +124,7 @@ namespace ODataStringToExpression
                 return Expression.Constant(System.Convert.ChangeType(right, propertyType));
         }
 
-        private NewArrayExpression GetNewArrayExpression(string right, Type propertyType)
+        private ListInitExpression GetListInitExpression(string right, Type propertyType)
         {
             var arrayValues = Regex.Match(right, RegularExpressions.ForElementsInArray)
                 .Groups[1].Value.Split(',').Select(v => v.Trim());
@@ -134,7 +137,9 @@ namespace ODataStringToExpression
                 constantExpressions.Add(Expression.Constant(@enum));
             }
 
-            return Expression.NewArrayInit(propertyType, constantExpressions);
+            var typeOfGenericList = typeof(List<>).MakeGenericType(propertyType);
+
+            return Expression.ListInit(Expression.New(typeOfGenericList), constantExpressions);
         }
     }
 }
