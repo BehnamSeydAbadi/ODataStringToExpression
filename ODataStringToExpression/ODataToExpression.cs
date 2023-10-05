@@ -6,61 +6,160 @@ using System.Text.RegularExpressions;
 
 namespace ODataStringToExpression
 {
-    public class ODataToExpression
+    public class ODataToExpression<T>
     {
-        public Func<T, bool> Convert<T>(string query)
+        private readonly ParameterExpression _paramExpression;
+
+        public ODataToExpression()
         {
-            var paramExpression = Expression.Parameter(typeof(T), "p");
+            _paramExpression = Expression.Parameter(typeof(T), "p");
+        }
 
-            var expressions = new List<Expression>();
+        public Func<T, bool> Convert(string query)
+        {
+            var expression = GenerateExpression(query);
 
-            foreach (var subQuery in query.Split(new[] { "and", "or" }, StringSplitOptions.None))
+            return Expression.Lambda<Func<T, bool>>(expression, _paramExpression).Compile();
+        }
+
+        private Expression GenerateExpression(string query)
+        {
+            var expressions = new Dictionary<Guid, Expression>();
+
+            if (query.Contains("(") && query.Contains(")"))
             {
-                var (left, @operator, right) = GetElementsOfQuery(subQuery);
+                var matches = Regex.Matches(query, RegularExpressions.ForBetweenParentheses);
 
-                if (@operator.IsBinaryExpression())
+                foreach (Match match in matches)
                 {
-                    var expression = CreateBinaryExpression<T>(
-                    left.Trim(), @operator.Trim(), right.Trim(), paramExpression);
+                    var areParanthesesForInOperation = match.Value.Contains(',');
+                    if (areParanthesesForInOperation) continue;
 
-                    expressions.Add(expression);
-                }
-                else if (@operator.IsMethodCallExpression())
-                {
-                    var expression = CreateMethodCallExpression<T>(
-                    left.Trim(), @operator.Trim(), right.Trim(), paramExpression);
+                    var expression = GenerateExpression(match.Groups[0].Value);
 
-                    expressions.Add(expression);
-                }
-                else
-                    throw new NotImplementedException();
-            }
+                    var key = Guid.NewGuid();
+                    expressions.Add(key, expression);
 
-            if (expressions.Count > 1)
-            {
-                if (query.Contains("and"))
-                {
-                    var andExpression = Expression.And(expressions[0], expressions[1]);
-
-                    if (expressions.Count > 2)
-                        for (int i = 2; i < expressions.Count; i++)
-                            andExpression = Expression.And(andExpression, expressions[i]);
-
-                    return Expression.Lambda<Func<T, bool>>(andExpression, paramExpression).Compile();
-                }
-                else
-                {
-                    var andExpression = Expression.Or(expressions[0], expressions[1]);
-
-                    if (expressions.Count > 2)
-                        for (int i = 2; i < expressions.Count; i++)
-                            andExpression = Expression.Or(andExpression, expressions[i]);
-
-                    return Expression.Lambda<Func<T, bool>>(andExpression, paramExpression).Compile();
+                    query = query.Replace($"({match.Value})", key.ToString()).Trim();
                 }
             }
 
-            return Expression.Lambda<Func<T, bool>>(expressions[0], paramExpression).Compile();
+            if (query.Contains("and"))
+            {
+                var andSubQueries = query.Split("and");
+
+                foreach (var andSubQuery in andSubQueries)
+                {
+                    if (andSubQuery.Contains("or"))
+                    {
+                        var orSubQueries = andSubQuery.Split("or");
+
+                        var orExpressions = new List<Expression>();
+
+                        foreach (var orSubQuery in orSubQueries)
+                        {
+                            if (Guid.TryParse(orSubQuery, out var key))
+                            {
+                                orExpressions.Add(expressions[key]);
+                                expressions.Remove(key);
+                            }
+                            else
+                                orExpressions.Add(GetExpression(orSubQuery));
+                        }
+
+                        var expression = GetMergedExpressions(orExpressions, LogicalOperator.OR);
+
+                        expressions.Add(Guid.NewGuid(), expression);
+
+                        continue;
+                    }
+
+                    if (Guid.TryParse(andSubQuery, out _) is false)
+                        expressions.Add(Guid.NewGuid(), GetExpression(andSubQuery));
+                }
+
+                return GetMergedExpressions(expressions.Values.ToList(), LogicalOperator.AND);
+            }
+
+            if (query.Contains("or"))
+            {
+                var orSubQueries = query.Split("or");
+
+                foreach (var orSubQuery in orSubQueries)
+                {
+                    if (orSubQuery.Contains("and"))
+                    {
+                        var andSubQueries = orSubQuery.Split("and");
+
+                        var andExpressions = new List<Expression>();
+
+                        foreach (var andSubQuery in andSubQueries)
+                        {
+                            if (Guid.TryParse(andSubQuery, out var key))
+                            {
+                                andExpressions.Add(expressions[key]);
+                                expressions.Remove(key);
+                            }
+                            else
+                                andExpressions.Add(GetExpression(andSubQuery));
+                        }
+
+                        var expression = GetMergedExpressions(andExpressions, LogicalOperator.AND);
+
+                        expressions.Add(Guid.NewGuid(), expression);
+
+                        continue;
+                    }
+
+                    expressions.Add(Guid.NewGuid(), GetExpression(orSubQuery));
+                }
+
+                return GetMergedExpressions(expressions.Values.ToList(), LogicalOperator.OR);
+            }
+
+            return GetExpression(query);
+        }
+
+        private Expression GetMergedExpressions(List<Expression> subExpressions, LogicalOperator @operator)
+        {
+            if (@operator == LogicalOperator.AND)
+            {
+                var andExpression = Expression.And(subExpressions[0], subExpressions[1]);
+
+                if (subExpressions.Count > 2)
+                    for (int i = 2; i < subExpressions.Count; i++)
+                        andExpression = Expression.And(andExpression, subExpressions[i]);
+
+                return andExpression;
+            }
+            else
+            {
+                var orExpression = Expression.Or(subExpressions[0], subExpressions[1]);
+
+                if (subExpressions.Count > 2)
+                    for (int i = 2; i < subExpressions.Count; i++)
+                        orExpression = Expression.Or(orExpression, subExpressions[i]);
+
+                return orExpression;
+            }
+        }
+
+        private Expression GetExpression(string query)
+        {
+            var (left, @operator, right) = GetElementsOfQuery(query);
+
+            if (@operator.IsBinaryExpression())
+            {
+                return CreateBinaryExpression(
+                       left.Trim(), @operator.Trim(), right.Trim());
+            }
+            else if (@operator.IsMethodCallExpression())
+            {
+                return CreateMethodCallExpression(
+                       left.Trim(), @operator.Trim(), right.Trim());
+            }
+            else
+                throw new NotImplementedException();
         }
 
         private (string Left, string Operator, string Right) GetElementsOfQuery(string query)
@@ -80,12 +179,12 @@ namespace ODataStringToExpression
             return (tokens[1].Value, tokens[2].Value, tokens[3].Value);
         }
 
-        private BinaryExpression CreateBinaryExpression<T>(
-                string left, string @operator, string right, ParameterExpression paramExpression)
+        private BinaryExpression CreateBinaryExpression(
+                string left, string @operator, string right)
         {
             var property = typeof(T).GetProperty(left);
 
-            var propertyExpression = Expression.Property(paramExpression, left);
+            var propertyExpression = Expression.Property(_paramExpression, left);
 
             var rightExpression = GetConstantExpression(right, property.PropertyType);
 
@@ -93,14 +192,14 @@ namespace ODataStringToExpression
                    .CreateExpression(propertyExpression, rightExpression);
         }
 
-        private MethodCallExpression CreateMethodCallExpression<T>(
-                string left, string @operator, string right, ParameterExpression paramExpression)
+        private MethodCallExpression CreateMethodCallExpression(
+                string left, string @operator, string right)
         {
             var property = typeof(T).GetProperty(left);
 
             var propertyType = property.PropertyType;
 
-            var leftExpression = Expression.Property(paramExpression, left);
+            var leftExpression = Expression.Property(_paramExpression, left);
 
             var rightExpression = GetListInitExpression(right, propertyType);
 
@@ -126,8 +225,8 @@ namespace ODataStringToExpression
 
         private ListInitExpression GetListInitExpression(string right, Type propertyType)
         {
-            var arrayValues = Regex.Match(right, RegularExpressions.ForElementsInArray)
-                .Groups[1].Value.Split(',').Select(v => v.Trim());
+            var arrayValues = Regex.Match(right, RegularExpressions.ForBetweenParentheses)
+                .Value.Split(",");
 
             var constantExpressions = new List<ConstantExpression>();
 
