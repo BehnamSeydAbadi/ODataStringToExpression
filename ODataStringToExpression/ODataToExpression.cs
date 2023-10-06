@@ -28,19 +28,23 @@ namespace ODataStringToExpression
 
             if (query.Contains("(") && query.Contains(")"))
             {
-                var matches = Regex.Matches(query, RegularExpressions.ForBetweenParentheses);
+                var values = GetBetweenParentheses(query);
 
-                foreach (Match match in matches)
+                foreach (var value in values)
                 {
-                    var areParanthesesForInOperation = match.Value.Contains(',');
-                    if (areParanthesesForInOperation) continue;
+                    var areParenthesesForInOperation =
+                        value.Contains(',')
+                        && value.Contains('(') is false
+                        && value.Contains(')') is false;
 
-                    var expression = GenerateExpression(match.Groups[0].Value);
+                    if (areParenthesesForInOperation) continue;
+
+                    var expression = GenerateExpression(value);
 
                     var key = Guid.NewGuid();
                     expressions.Add(key, expression);
 
-                    query = query.Replace($"({match.Value})", key.ToString()).Trim();
+                    query = query.Replace($"({value})", key.ToString()).Trim();
                 }
             }
 
@@ -111,7 +115,8 @@ namespace ODataStringToExpression
                         continue;
                     }
 
-                    expressions.Add(Guid.NewGuid(), GetExpression(orSubQuery));
+                    if (Guid.TryParse(orSubQuery, out _) is false)
+                        expressions.Add(Guid.NewGuid(), GetExpression(orSubQuery));
                 }
 
                 return GetMergedExpressions(expressions.Values.ToList(), LogicalOperator.OR);
@@ -239,6 +244,60 @@ namespace ODataStringToExpression
             var typeOfGenericList = typeof(List<>).MakeGenericType(propertyType);
 
             return Expression.ListInit(Expression.New(typeOfGenericList), constantExpressions);
+        }
+
+        internal IEnumerable<string> GetBetweenParentheses(string value)
+        {
+            var openParenthesesCount = 0;
+            var closeParenthesesCount = 0;
+
+            var output = new List<string>();
+
+            var betweenParenthesesCharacters = new List<char>();
+
+            foreach (var @char in value)
+            {
+                if (@char == '(')
+                {
+                    openParenthesesCount++;
+                    betweenParenthesesCharacters.Add('(');
+                    continue;
+                }
+                else if (@char == ')')
+                {
+                    closeParenthesesCount++;
+                    betweenParenthesesCharacters.Add(')');
+
+                    var isInMiddleOfOpenParenthesesExpression = openParenthesesCount > closeParenthesesCount;
+
+                    if (isInMiddleOfOpenParenthesesExpression) continue;
+                }
+
+
+                var isReachedToTheFinalCloseParentheses =
+                    openParenthesesCount > 0 && closeParenthesesCount > 0
+                    && openParenthesesCount == closeParenthesesCount;
+
+                if (isReachedToTheFinalCloseParentheses)
+                {
+                    var stringBetweenParentheses = string.Join(string.Empty, betweenParenthesesCharacters.ToArray());
+
+                    // Remove the first and last parentheses
+                    stringBetweenParentheses = stringBetweenParentheses.Substring(1, stringBetweenParentheses.Length - 1);
+                    stringBetweenParentheses = stringBetweenParentheses.Substring(0, stringBetweenParentheses.Length - 1);
+
+                    output.Add(stringBetweenParentheses);
+
+                    // Reset the parentheses identification indices
+                    betweenParenthesesCharacters.Clear();
+                    openParenthesesCount = 0;
+                    closeParenthesesCount = 0;
+                }
+                else if (openParenthesesCount > 0)
+                    betweenParenthesesCharacters.Add(@char);
+            }
+
+            return output;
         }
     }
 }
