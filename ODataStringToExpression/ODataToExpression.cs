@@ -231,7 +231,7 @@ namespace ODataStringToExpression
         private ListInitExpression GetListInitExpression(string right, Type propertyType)
         {
             var arrayValues = Regex.Match(right, RegularExpressions.ForBetweenParentheses)
-                .Value.Split(",");
+                .Value.Split(",").Select(v => v.Trim('\''));
 
             var constantExpressions = new List<ConstantExpression>();
 
