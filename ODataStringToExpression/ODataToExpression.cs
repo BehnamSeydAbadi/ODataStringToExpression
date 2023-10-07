@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace ODataStringToExpression
@@ -18,7 +19,6 @@ namespace ODataStringToExpression
         public Func<T, bool> Convert(string query)
         {
             var expression = GenerateExpression(query);
-
             return Expression.Lambda<Func<T, bool>>(expression, _paramExpression).Compile();
         }
 
@@ -26,7 +26,7 @@ namespace ODataStringToExpression
         {
             var expressions = new Dictionary<Guid, Expression>();
 
-            if (query.Contains("(") && query.Contains(")"))
+            if (query.Contains('(') && query.Contains(')'))
             {
                 var values = GetBetweenParentheses(query);
 
@@ -187,7 +187,7 @@ namespace ODataStringToExpression
         private BinaryExpression CreateBinaryExpression(
                 string left, string @operator, string right)
         {
-            var property = typeof(T).GetProperty(left);
+            var property = GetProperty(left);
 
             var propertyExpression = Expression.Property(_paramExpression, left);
 
@@ -200,7 +200,7 @@ namespace ODataStringToExpression
         private MethodCallExpression CreateMethodCallExpression(
                 string left, string @operator, string right)
         {
-            var property = typeof(T).GetProperty(left);
+            var property = GetProperty(left);
 
             var propertyType = property.PropertyType;
 
@@ -244,6 +244,12 @@ namespace ODataStringToExpression
             var typeOfGenericList = typeof(List<>).MakeGenericType(propertyType);
 
             return Expression.ListInit(Expression.New(typeOfGenericList), constantExpressions);
+        }
+
+        private PropertyInfo GetProperty(string name)
+        {
+            return typeof(T).GetProperties()
+                   .SingleOrDefault(p => p.Name.ToLower() == name.ToLower());
         }
 
         internal IEnumerable<string> GetBetweenParentheses(string value)
