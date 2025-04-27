@@ -35,6 +35,12 @@ public class ConstantExpressionBuilder
 
             return Expression.Constant(Enum.Parse(enumType, enumValue.ToString()));
         }
+        else if (_constantNode.Value is DateTimeOffset dateTimeOffset)
+        {
+            var dateTimeValue = Convert.ToDateTime(dateTimeOffset.ToString());
+
+            return Expression.Constant(dateTimeValue, typeof(DateTime));
+        }
 
         return Expression.Constant(_constantNode.Value);
     }
