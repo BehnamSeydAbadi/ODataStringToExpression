@@ -9,12 +9,7 @@ namespace ODataStringToExpression
 {
     public class ODataToExpression<T>
     {
-        private readonly ParameterExpression _paramExpression;
-
-        public ODataToExpression()
-        {
-            _paramExpression = Expression.Parameter(typeof(T), "p");
-        }
+        private readonly ParameterExpression _paramExpression = Expression.Parameter(typeof(T), "p");
 
         public Func<T, bool> Convert(string query)
         {
@@ -156,12 +151,12 @@ namespace ODataStringToExpression
             if (@operator.IsBinaryExpression())
             {
                 return CreateBinaryExpression(
-                       left.Trim(), @operator.Trim(), right.Trim());
+                    left.Trim(), @operator.Trim(), right.Trim());
             }
             else if (@operator.IsMethodCallExpression())
             {
                 return CreateMethodCallExpression(
-                       left.Trim(), @operator.Trim(), right.Trim());
+                    left.Trim(), @operator.Trim(), right.Trim());
             }
             else
                 throw new NotImplementedException();
@@ -185,7 +180,7 @@ namespace ODataStringToExpression
         }
 
         private BinaryExpression CreateBinaryExpression(
-                string left, string @operator, string right)
+            string left, string @operator, string right)
         {
             var property = GetProperty(left);
 
@@ -194,11 +189,11 @@ namespace ODataStringToExpression
             var rightExpression = GetConstantExpression(right, property.PropertyType);
 
             return BinaryOperatorFactory.GetInstance(@operator)
-                   .CreateExpression(propertyExpression, rightExpression);
+                .CreateExpression(propertyExpression, rightExpression);
         }
 
         private MethodCallExpression CreateMethodCallExpression(
-                string left, string @operator, string right)
+            string left, string @operator, string right)
         {
             var property = GetProperty(left);
 
@@ -212,9 +207,9 @@ namespace ODataStringToExpression
                 .GetMethod("Contains", new[] { propertyType });
 
             return Expression.Call(
-                   instance: rightExpression,
-                   method,
-                   arguments: leftExpression);
+                instance: rightExpression,
+                method,
+                arguments: leftExpression);
         }
 
         private ConstantExpression GetConstantExpression(string right, Type propertyType)
@@ -249,7 +244,7 @@ namespace ODataStringToExpression
         private PropertyInfo GetProperty(string name)
         {
             return typeof(T).GetProperties()
-                   .SingleOrDefault(p => p.Name.ToLower() == name.ToLower());
+                .SingleOrDefault(p => p.Name.ToLower() == name.ToLower());
         }
 
         internal IEnumerable<string> GetBetweenParentheses(string value)
@@ -282,7 +277,7 @@ namespace ODataStringToExpression
 
                 var isReachedToTheFinalCloseParentheses =
                     openParenthesesCount > 0 && closeParenthesesCount > 0
-                    && openParenthesesCount == closeParenthesesCount;
+                                             && openParenthesesCount == closeParenthesesCount;
 
                 if (isReachedToTheFinalCloseParentheses)
                 {

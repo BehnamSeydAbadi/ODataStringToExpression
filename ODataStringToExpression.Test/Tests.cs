@@ -186,7 +186,8 @@ public class Tests
     [Fact]
     public void Price_le_20_or_Status_in_Available_SoldOut_and_CreateDate_eq_2014_06_26()
     {
-        var odataUrl = $"Price le 20 or (Status in ({(int)ProductStatus.Available}, {(int)ProductStatus.SoldOut}) and CreateDate eq 2014-06-26)";
+        var odataUrl =
+            $"Price le 20 or (Status in ({(int)ProductStatus.Available}, {(int)ProductStatus.SoldOut}) and CreateDate eq 2014-06-26)";
 
         var expecting = new ODataToExpression<Product>().Convert(odataUrl);
 
@@ -196,12 +197,9 @@ public class Tests
         Assert(expecting, expected: p => p.Price <= 20
                                          || (status.Contains(p.Status) && p.CreateDate == dateTime));
     }
+    
 
-
-
-    private void Assert(
-            Func<Product, bool> expecting,
-            Func<Product, bool> expected)
+    private static void Assert(Func<Product, bool> expecting, Func<Product, bool> expected)
     {
         var product = new Product
         {
