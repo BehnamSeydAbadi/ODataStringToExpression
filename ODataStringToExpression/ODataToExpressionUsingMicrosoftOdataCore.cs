@@ -41,7 +41,7 @@ namespace ODataStringToExpression
                 }
                 case ConstantNode constantNode:
                 {
-                    return Expression.Constant(constantNode.Value);
+                    return ConstantExpressionBuilder.New().WithConstantNode(constantNode).Build();
                 }
                 default: throw new NotImplementedException(odataSingleValueNode.Kind.ToString());
             }

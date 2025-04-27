@@ -1,0 +1,47 @@
+﻿using System;
+using System.Linq;
+using System.Linq.Expressions;
+using Microsoft.OData;
+using Microsoft.OData.UriParser;
+
+namespace ODataStringToExpression;
+
+public class ConstantExpressionBuilder
+{
+    private ConstantNode _constantNode;
+
+    private ConstantExpressionBuilder()
+    {
+    }
+
+    public static ConstantExpressionBuilder New() => new();
+
+    public ConstantExpressionBuilder WithConstantNode(ConstantNode constantNode)
+    {
+        _constantNode = constantNode;
+        return this;
+    }
+
+    public ConstantExpression Build()
+    {
+        if (_constantNode.Value is ODataEnumValue enumValue)
+        {
+            var enumType = GetEnumTypeFromTypeName(enumValue.TypeName);
+
+            if (enumType is null)
+            {
+                throw new InvalidOperationException($"Enum type '{enumValue.TypeName}' could not be found.");
+            }
+
+            return Expression.Constant(Enum.Parse(enumType, enumValue.ToString()));
+        }
+
+        return Expression.Constant(_constantNode.Value);
+    }
+
+    private Type GetEnumTypeFromTypeName(string typeName)
+    {
+        return AppDomain.CurrentDomain.GetAssemblies().SelectMany(assembly => assembly.GetTypes())
+            .FirstOrDefault(type => type.IsEnum && type.FullName == typeName);
+    }
+}

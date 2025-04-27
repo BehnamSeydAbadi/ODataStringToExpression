@@ -65,17 +65,17 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
 
         Assert(expecting, expected: p => p.Price > 10 || p.Price < 20);
     }
-    
-    // [Fact]
-    // public void Status_eq_available()
-    // {
-    //     var odataUrl = $"Status eq {(int)ProductStatus.Available}";
-    //
-    //     var expecting = new ODataToExpression<Product>().Convert(odataUrl);
-    //
-    //     Assert(expecting, expected: p => p.Status == ProductStatus.Available);
-    // }
-    //
+
+    [Fact]
+    public void Status_eq_available()
+    {
+        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert(
+            $"?$filter=Status eq {(int)ProductStatus.Available}"
+        );
+
+        Assert(expecting, expected: p => p.Status == ProductStatus.Available);
+    }
+
     // [Fact]
     // public void Price_gt_5_and_Price_le_20_Status_eq_Available()
     // {
