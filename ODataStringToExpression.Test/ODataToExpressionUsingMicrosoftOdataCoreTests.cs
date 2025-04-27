@@ -33,17 +33,15 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
 
         Assert(expecting, expected: p => p.Price >= 10);
     }
-    
-    // [Fact]
-    // public void Price_lt_20()
-    // {
-    //     var odataUrl = "Price lt 20";
-    //
-    //     var expecting = new ODataToExpression<Product>().Convert(odataUrl);
-    //
-    //     Assert(expecting, expected: p => p.Price < 20);
-    // }
-    //
+
+    [Fact]
+    public void Price_lt_20()
+    {
+        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert("?$filter=Price lt 20");
+
+        Assert(expecting, expected: p => p.Price < 20);
+    }
+
     // [Fact]
     // public void Price_le_20()
     // {
