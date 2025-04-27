@@ -51,6 +51,8 @@ namespace ODataStringToExpression
                     return Expression.NotEqual(left, right);
                 case BinaryOperatorKind.And:
                     return Expression.And(left, right);
+                case BinaryOperatorKind.Or:
+                    return Expression.Or(left, right);
                 default:
                     throw new NotImplementedException(binaryOperatorNode.ToString());
             }
