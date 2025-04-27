@@ -26,16 +26,14 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
         Assert(expecting, expected: p => p.Price > 10);
     }
 
-    // [Fact]
-    // public void Price_ge_10()
-    // {
-    //     var odataUrl = "Price ge 10";
-    //
-    //     var expecting = new ODataToExpression<Product>().Convert(odataUrl);
-    //
-    //     Assert(expecting, expected: p => p.Price >= 10);
-    // }
-    //
+    [Fact]
+    public void Price_ge_10()
+    {
+        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert("?$filter=Price ge 10");
+
+        Assert(expecting, expected: p => p.Price >= 10);
+    }
+    
     // [Fact]
     // public void Price_lt_20()
     // {
