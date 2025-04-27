@@ -10,6 +10,14 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
         Assert(expecting, expected: p => p.Price == 5);
     }
 
+    [Fact]
+    public void Price_ne_5()
+    {
+        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert("?$filter=Price ne 5");
+
+        Assert(expecting, expected: p => p.Price != 5);
+    }
+
     private static void Assert(Func<Product, bool> expecting, Func<Product, bool> expected)
     {
         var product = new Product

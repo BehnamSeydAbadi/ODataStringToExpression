@@ -26,34 +26,24 @@ namespace ODataStringToExpression
 
         private Expression GenerateExpression(SingleValueNode odataSingleValueNode)
         {
-            if (odataSingleValueNode is BinaryOperatorNode binaryOperatorNode)
+            switch (odataSingleValueNode)
             {
-                Expression binaryExpression;
-
-                if (binaryOperatorNode.OperatorKind is BinaryOperatorKind.Equal)
+                case BinaryOperatorNode binaryOperatorNode:
                 {
-                    binaryExpression = Expression.Equal(
+                    return BinaryOperatorFactory.New().CreateExpression(
+                        binaryOperatorNode.OperatorKind,
                         GenerateExpression(binaryOperatorNode.Left),
                         GenerateExpression(binaryOperatorNode.Right));
                 }
-                else
+                case SingleValuePropertyAccessNode singleValuePropertyAccessNode:
                 {
-                    throw new NotImplementedException();
+                    return Expression.Property(_paramExpression, singleValuePropertyAccessNode.Property.Name);
                 }
-
-                return binaryExpression;
-            }
-            else if (odataSingleValueNode is SingleValuePropertyAccessNode singleValuePropertyAccessNode)
-            {
-                return Expression.Property(_paramExpression, singleValuePropertyAccessNode.Property.Name);
-            }
-            else if (odataSingleValueNode is ConstantNode constant)
-            {
-                return Expression.Constant(constant.Value);
-            }
-            else
-            {
-                throw new NotImplementedException(odataSingleValueNode.Kind.ToString());
+                case ConstantNode constantNode:
+                {
+                    return Expression.Constant(constantNode.Value);
+                }
+                default: throw new NotImplementedException(odataSingleValueNode.Kind.ToString());
             }
         }
 

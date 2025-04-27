@@ -1,18 +1,20 @@
 ﻿using System;
 using System.Linq.Expressions;
+using Microsoft.OData.UriParser;
 
 namespace ODataStringToExpression
 {
     internal class BinaryOperatorFactory
     {
-        private readonly string _odataOperator;
-
-        internal static BinaryOperatorFactory GetInstance(string odataOperator) => new BinaryOperatorFactory(odataOperator);
-        private BinaryOperatorFactory(string odataOperator) => _odataOperator = odataOperator;
-
-        internal BinaryExpression CreateExpression(Expression left, Expression right)
+        private BinaryOperatorFactory()
         {
-            switch (_odataOperator)
+        }
+
+        internal static BinaryOperatorFactory New() => new();
+
+        internal BinaryExpression CreateExpression(string odataOperator, Expression left, Expression right)
+        {
+            switch (odataOperator)
             {
                 case "gt":
                     return Expression.GreaterThan(left, right);
@@ -27,7 +29,28 @@ namespace ODataStringToExpression
                 case "ne":
                     return Expression.NotEqual(left, right);
                 default:
-                    throw new NotImplementedException(_odataOperator);
+                    throw new NotImplementedException(odataOperator);
+            }
+        }
+
+        internal BinaryExpression CreateExpression(BinaryOperatorKind binaryOperatorNode, Expression left, Expression right)
+        {
+            switch (binaryOperatorNode)
+            {
+                case BinaryOperatorKind.GreaterThan:
+                    return Expression.GreaterThan(left, right);
+                case BinaryOperatorKind.Equal:
+                    return Expression.Equal(left, right);
+                case BinaryOperatorKind.LessThan:
+                    return Expression.LessThan(left, right);
+                case BinaryOperatorKind.GreaterThanOrEqual:
+                    return Expression.GreaterThanOrEqual(left, right);
+                case BinaryOperatorKind.LessThanOrEqual:
+                    return Expression.LessThanOrEqual(left, right);
+                case BinaryOperatorKind.NotEqual:
+                    return Expression.NotEqual(left, right);
+                default:
+                    throw new NotImplementedException(binaryOperatorNode.ToString());
             }
         }
     }
