@@ -123,6 +123,19 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
     }
 
     [Fact]
+    public void Status_not_in_1_2()
+    {
+        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert(
+            $"?$filter=not (Status in ('{(int)ProductStatus.Available}', '{(int)ProductStatus.SoldOut}'))"
+        );
+
+        var status = new[] { ProductStatus.Available, ProductStatus.SoldOut };
+
+        Assert(expecting, expected: p => !status.Contains(p.Status));
+    }
+
+
+    [Fact]
     public void Price_gt_5_or_Status_eq_SoldOut()
     {
         var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert(

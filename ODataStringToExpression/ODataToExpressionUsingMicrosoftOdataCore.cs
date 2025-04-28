@@ -54,6 +54,11 @@ namespace ODataStringToExpression
                         .WithRightCollectionConstantNode(inNode.Right as CollectionConstantNode)
                         .Build();
                 }
+                case UnaryOperatorNode unaryOperatorNode:
+                {
+                    var operandExpression = GenerateExpression(unaryOperatorNode.Operand);
+                    return Expression.Not(operandExpression);
+                }
                 default: throw new NotImplementedException(odataSingleValueNode.Kind.ToString());
             }
         }
