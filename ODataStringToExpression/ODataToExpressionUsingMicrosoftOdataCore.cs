@@ -43,6 +43,10 @@ namespace ODataStringToExpression
                 {
                     return ConstantExpressionBuilder.New().WithConstantNode(constantNode).Build();
                 }
+                case ConvertNode convertNode:
+                {
+                    return GenerateExpression(convertNode.Source);
+                }
                 default: throw new NotImplementedException(odataSingleValueNode.Kind.ToString());
             }
         }

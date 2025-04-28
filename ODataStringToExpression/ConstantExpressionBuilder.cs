@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.OData;
+using Microsoft.OData.Edm;
 using Microsoft.OData.UriParser;
 
 namespace ODataStringToExpression;
@@ -38,7 +39,11 @@ public class ConstantExpressionBuilder
         else if (_constantNode.Value is DateTimeOffset dateTimeOffset)
         {
             var dateTimeValue = Convert.ToDateTime(dateTimeOffset.ToString());
-
+            return Expression.Constant(dateTimeValue, typeof(DateTime));
+        }
+        else if (_constantNode.Value is Date date)
+        {
+            var dateTimeValue = Convert.ToDateTime(date.ToString());
             return Expression.Constant(dateTimeValue, typeof(DateTime));
         }
 

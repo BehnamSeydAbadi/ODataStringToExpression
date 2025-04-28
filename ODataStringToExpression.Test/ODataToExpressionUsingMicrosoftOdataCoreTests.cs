@@ -98,18 +98,18 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
         Assert(expecting, expected: p => p.CreateDate == dateTime);
     }
 
-    // [Fact]
-    // public void CreateDate_eq_2014_06_26()
-    // {
-    //     var odataUrl = $"CreateDate eq 2014-06-26";
-    //
-    //     var expecting = new ODataToExpression<Product>().Convert(odataUrl);
-    //
-    //     var dateTime = new DateTime(2014, 06, 26);
-    //
-    //     Assert(expecting, expected: p => p.CreateDate == dateTime);
-    // }
-    //
+    [Fact]
+    public void CreateDate_eq_2014_06_26()
+    {
+        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert(
+            "?$filter=CreateDate eq 2014-06-26"
+        );
+        
+        var dateTime = new DateTime(2014, 06, 26);
+
+        Assert(expecting, expected: p => p.CreateDate == dateTime);
+    }
+    
     // [Fact]
     // public void Status_in_1_2()
     // {
