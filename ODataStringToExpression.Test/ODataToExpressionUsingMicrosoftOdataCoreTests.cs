@@ -134,7 +134,6 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
         Assert(expecting, expected: p => !status.Contains(p.Status));
     }
 
-
     [Fact]
     public void Price_gt_5_or_Status_eq_SoldOut()
     {
@@ -193,6 +192,24 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
         Assert(expecting, expected: p => p.Price <= 20
                                          || (status.Contains(p.Status) && p.CreateDate == dateTime));
     }
+
+    [Fact]
+    public void Complex_filter_with_not_equal_in_and_or_gt_le()
+    {
+        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert(
+            $"?$filter=not (Status eq {(int)ProductStatus.NotAvailable}) and (Price gt 100 or Price le 50) and (Category in ('Electronics', 'Books'))"
+        );
+
+        var categories = new[] { ProductCategory.Electronics, ProductCategory.Books };
+
+        Assert(
+            expecting,
+            expected: p => p.Status != ProductStatus.NotAvailable
+                           && (p.Price > 100 || p.Price <= 50)
+                           && categories.Contains(p.Category)
+        );
+    }
+
 
     private static void Assert(Func<Product, bool> expecting, Func<Product, bool> expected)
     {

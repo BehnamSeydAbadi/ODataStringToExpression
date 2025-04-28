@@ -5,6 +5,7 @@
         public int Id { get; set; }
         public decimal Price { get; set; }
         public ProductStatus Status { get; set; }
+        public ProductCategory Category { get; set; }
         public DateTime CreateDate { get; set; }
     }
 
@@ -13,5 +14,11 @@
         SoldOut = 1,
         Available,
         NotAvailable
+    }
+
+    internal enum ProductCategory
+    {
+        Electronics = 1,
+        Books
     }
 }
