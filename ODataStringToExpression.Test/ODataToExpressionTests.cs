@@ -334,6 +334,20 @@ public class ODataToExpressionTests
         );
     }
 
+    [Fact]
+    public void Inventory_filter_products_not_all_price_gt_50()
+    {
+        var expecting = new ODataToExpression().Convert<InventoryEntity>(
+            $"?$filter=not Products/all(p: p/Price gt 50)"
+        );
+
+        Assert(
+            expecting,
+            expected: e => e.Products.All(p => p.Price > 50) is false,
+            CreateInventoryEntity()
+        );
+    }
+
 
     private static void Assert<TEntity>(Func<TEntity, bool> expecting, Func<TEntity, bool> expected,
         TEntity entityModel)
