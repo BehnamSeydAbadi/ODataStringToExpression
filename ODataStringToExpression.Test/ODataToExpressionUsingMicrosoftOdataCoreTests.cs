@@ -132,28 +132,28 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
         Assert(expecting, expected: p => p.Price > 5 || p.Status == ProductStatus.SoldOut);
     }
 
-    // [Fact]
-    // public void Price_gt_5_and_Status_eq_Available_or_Price_le_20()
-    // {
-    //     var odataUrl = $"Price gt 5 and (Status eq {(int)ProductStatus.Available} or Price le 20)";
-    //
-    //     var expecting = new ODataToExpression<Product>().Convert(odataUrl);
-    //
-    //     Assert(expecting, expected: p => p.Price > 5 && (p.Status == ProductStatus.Available || p.Price <= 20));
-    // }
-    //
-    // [Fact]
-    // public void CreateDate_gt_2014_06_26T03_30_00_000Z_and_Status_eq_Available()
-    // {
-    //     var odataUrl = $"CreateDate gt 2014-06-26T03:30:00.000Z and Status eq {(int)ProductStatus.Available}";
-    //
-    //     var expecting = new ODataToExpression<Product>().Convert(odataUrl);
-    //
-    //     var dateTime = new DateTime(2014, 06, 26, 3, 30, 0);
-    //
-    //     Assert(expecting, expected: p => p.CreateDate > dateTime && p.Status == ProductStatus.Available);
-    // }
-    //
+    [Fact]
+    public void Price_gt_5_and_Status_eq_Available_or_Price_le_20()
+    {
+        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert(
+            $"?$filter=Price gt 5 and (Status eq '{(int)ProductStatus.Available}' or Price le 20)"
+        );
+
+        Assert(expecting, expected: p => p.Price > 5 && (p.Status == ProductStatus.Available || p.Price <= 20));
+    }
+
+    [Fact]
+    public void CreateDate_gt_2014_06_26T03_30_00_000Z_and_Status_eq_Available()
+    {
+        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert(
+            $"?$filter=CreateDate gt 2014-06-26T03:30:00.000Z and Status eq {(int)ProductStatus.Available}"
+        );
+        
+        var dateTime = new DateTime(2014, 06, 26, 3, 30, 0);
+    
+        Assert(expecting, expected: p => p.CreateDate > dateTime && p.Status == ProductStatus.Available);
+    }
+    
     // [Fact]
     // public void Price_gt_5_and_Price_le_20_or_Status_eq_Available_and_CreateDate_eq_2014_06_26()
     // {
