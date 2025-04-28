@@ -160,27 +160,26 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
         var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert(
             $"?$filter=Price gt 5 and Price le 20 or (Status eq {(int)ProductStatus.Available} and CreateDate eq 2014-06-26)"
         );
-        
+
         var dateTime = new DateTime(2014, 06, 26);
 
         Assert(expecting, expected: p => p.Price > 5 && p.Price <= 20
                                          || (p.Status == ProductStatus.Available && p.CreateDate == dateTime));
     }
 
-    // [Fact]
-    // public void Price_le_20_or_Status_in_Available_SoldOut_and_CreateDate_eq_2014_06_26()
-    // {
-    //     var odataUrl =
-    //         $"Price le 20 or (Status in ({(int)ProductStatus.Available}, {(int)ProductStatus.SoldOut}) and CreateDate eq 2014-06-26)";
-    //
-    //     var expecting = new ODataToExpression<Product>().Convert(odataUrl);
-    //
-    //     var dateTime = new DateTime(2014, 06, 26);
-    //     var status = new[] { ProductStatus.Available, ProductStatus.SoldOut };
-    //
-    //     Assert(expecting, expected: p => p.Price <= 20
-    //                                      || (status.Contains(p.Status) && p.CreateDate == dateTime));
-    // }
+    [Fact]
+    public void Price_le_20_or_Status_in_Available_SoldOut_and_CreateDate_eq_2014_06_26()
+    {
+        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert(
+            $"?$filter=Price le 20 or (Status in ('{(int)ProductStatus.Available}', '{(int)ProductStatus.SoldOut}') and CreateDate eq 2014-06-26)"
+        );
+
+        var dateTime = new DateTime(2014, 06, 26);
+        var status = new[] { ProductStatus.Available, ProductStatus.SoldOut };
+
+        Assert(expecting, expected: p => p.Price <= 20
+                                         || (status.Contains(p.Status) && p.CreateDate == dateTime));
+    }
 
     private static void Assert(Func<Product, bool> expecting, Func<Product, bool> expected)
     {
