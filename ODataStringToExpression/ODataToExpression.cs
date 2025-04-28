@@ -188,7 +188,7 @@ namespace ODataStringToExpression
 
             var rightExpression = GetConstantExpression(right, property.PropertyType);
 
-            return BinaryOperatorFactory.New().CreateExpression(@operator, propertyExpression, rightExpression);
+            return BinaryExpressionBuilder.New().Build(@operator, propertyExpression, rightExpression);
         }
 
         private MethodCallExpression CreateMethodCallExpression(

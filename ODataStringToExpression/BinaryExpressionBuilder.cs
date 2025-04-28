@@ -4,15 +4,15 @@ using Microsoft.OData.UriParser;
 
 namespace ODataStringToExpression
 {
-    internal class BinaryOperatorFactory
+    internal class BinaryExpressionBuilder
     {
-        private BinaryOperatorFactory()
+        private BinaryExpressionBuilder()
         {
         }
 
-        internal static BinaryOperatorFactory New() => new();
+        internal static BinaryExpressionBuilder New() => new();
 
-        internal BinaryExpression CreateExpression(string odataOperator, Expression left, Expression right)
+        internal BinaryExpression Build(string odataOperator, Expression left, Expression right)
         {
             switch (odataOperator)
             {
@@ -33,7 +33,7 @@ namespace ODataStringToExpression
             }
         }
 
-        internal BinaryExpression CreateExpression(BinaryOperatorKind binaryOperatorNode, Expression left, Expression right)
+        internal BinaryExpression Build(BinaryOperatorKind binaryOperatorNode, Expression left, Expression right)
         {
             switch (binaryOperatorNode)
             {

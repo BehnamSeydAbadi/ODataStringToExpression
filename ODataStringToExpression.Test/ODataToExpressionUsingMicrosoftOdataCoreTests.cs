@@ -104,24 +104,24 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
         var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert(
             "?$filter=CreateDate eq 2014-06-26"
         );
-        
+
         var dateTime = new DateTime(2014, 06, 26);
 
         Assert(expecting, expected: p => p.CreateDate == dateTime);
     }
-    
-    // [Fact]
-    // public void Status_in_1_2()
-    // {
-    //     var odataUrl = $"Status in ({(int)ProductStatus.Available}, {(int)ProductStatus.SoldOut})";
-    //
-    //     var expecting = new ODataToExpression<Product>().Convert(odataUrl);
-    //
-    //     var status = new[] { ProductStatus.Available, ProductStatus.SoldOut };
-    //
-    //     Assert(expecting, expected: p => status.Contains(p.Status));
-    // }
-    //
+
+    [Fact]
+    public void Status_in_1_2()
+    {
+        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert(
+            $"?$filter=Status in ('{(int)ProductStatus.Available}', '{(int)ProductStatus.SoldOut}')"
+        );
+
+        var status = new[] { ProductStatus.Available, ProductStatus.SoldOut };
+
+        Assert(expecting, expected: p => status.Contains(p.Status));
+    }
+
     // [Fact]
     // public void Price_gt_5_or_Status_eq_SoldOut()
     // {

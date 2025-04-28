@@ -30,7 +30,7 @@ namespace ODataStringToExpression
             {
                 case BinaryOperatorNode binaryOperatorNode:
                 {
-                    return BinaryOperatorFactory.New().CreateExpression(
+                    return BinaryExpressionBuilder.New().Build(
                         binaryOperatorNode.OperatorKind,
                         GenerateExpression(binaryOperatorNode.Left),
                         GenerateExpression(binaryOperatorNode.Right));
@@ -46,6 +46,13 @@ namespace ODataStringToExpression
                 case ConvertNode convertNode:
                 {
                     return GenerateExpression(convertNode.Source);
+                }
+                case InNode inNode:
+                {
+                    return ContainExpressionBuilder.New()
+                        .WithLeftExpression(GenerateExpression(inNode.Left))
+                        .WithRightCollectionConstantNode(inNode.Right as CollectionConstantNode)
+                        .Build();
                 }
                 default: throw new NotImplementedException(odataSingleValueNode.Kind.ToString());
             }
