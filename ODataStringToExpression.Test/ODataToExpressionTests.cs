@@ -306,8 +306,23 @@ public class ODataToExpressionTests
         );
     }
 
+    [Fact]
+    public void Inventory_filter_products_not_any_price_equals_50()
+    {
+        var expecting = new ODataToExpression().Convert<InventoryEntity>(
+            $"?$filter=not Products/any(p: p/Price eq 50)"
+        );
 
-    private static void Assert<TEntity>(Func<TEntity, bool> expecting, Func<TEntity, bool> expected, TEntity entityModel)
+        Assert(
+            expecting,
+            expected: e => e.Products.Any(p => p.Price == 50) is false,
+            CreateInventoryEntity()
+        );
+    }
+
+
+    private static void Assert<TEntity>(Func<TEntity, bool> expecting, Func<TEntity, bool> expected,
+        TEntity entityModel)
     {
         var expectingResult = expecting(entityModel);
         var expectedResult = expected(entityModel);
