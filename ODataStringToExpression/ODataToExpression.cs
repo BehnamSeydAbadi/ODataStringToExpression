@@ -7,25 +7,28 @@ using Microsoft.AspNet.OData.Query;
 using Microsoft.OData.Edm;
 using Microsoft.OData.UriParser;
 using ODataStringToExpression.ExpressionBuilders;
+using ODataStringToExpression.Extensions;
 
 namespace ODataStringToExpression
 {
-    public class ODataToExpression<TEntityType> where TEntityType : class
+    public class ODataToExpression
     {
-        private readonly ParameterExpression _paramExpression = Expression.Parameter(typeof(TEntityType), "tet");
-
-        public Func<TEntityType, bool> Convert(string query)
+        public Func<TEntityType, bool> Convert<TEntityType>(
+            string query, ParameterExpression? parameterExpression = null
+        ) where TEntityType : class
         {
+            var paramExpression = parameterExpression ?? Expression.Parameter(typeof(TEntityType), $"default_{Guid.NewGuid()}");
+
             var oDataQueryOptions = ODataQueryOptionsBuilder<TEntityType>.New().WithQuery(query).Build();
 
-            var odataSingleValueNode = GetOdataSingleValueNode(oDataQueryOptions);
+            var odataSingleValueNode = GetOdataSingleValueNode<TEntityType>(oDataQueryOptions);
 
-            var expression = GenerateExpression(odataSingleValueNode);
+            var expression = GenerateExpression(odataSingleValueNode, paramExpression);
 
-            return Expression.Lambda<Func<TEntityType, bool>>(expression, _paramExpression).Compile();
+            return Expression.Lambda<Func<TEntityType, bool>>(expression, paramExpression).Compile();
         }
 
-        private Expression GenerateExpression(SingleValueNode odataSingleValueNode)
+        public Expression GenerateExpression(SingleValueNode odataSingleValueNode, ParameterExpression parameterExpression)
         {
             switch (odataSingleValueNode)
             {
@@ -33,12 +36,13 @@ namespace ODataStringToExpression
                 {
                     return BinaryExpressionBuilder.New().Build(
                         binaryOperatorNode.OperatorKind,
-                        GenerateExpression(binaryOperatorNode.Left),
-                        GenerateExpression(binaryOperatorNode.Right));
+                        GenerateExpression(binaryOperatorNode.Left, parameterExpression),
+                        GenerateExpression(binaryOperatorNode.Right, parameterExpression)
+                    );
                 }
                 case SingleValuePropertyAccessNode singleValuePropertyAccessNode:
                 {
-                    return Expression.Property(_paramExpression, singleValuePropertyAccessNode.Property.Name);
+                    return Expression.Property(parameterExpression, singleValuePropertyAccessNode.Property.Name);
                 }
                 case ConstantNode constantNode:
                 {
@@ -46,25 +50,59 @@ namespace ODataStringToExpression
                 }
                 case ConvertNode convertNode:
                 {
-                    return GenerateExpression(convertNode.Source);
+                    return GenerateExpression(convertNode.Source, parameterExpression);
                 }
                 case InNode inNode:
                 {
+                    var leftExpression = GenerateExpression(inNode.Left, parameterExpression);
+
                     return ContainExpressionBuilder.New()
-                        .WithLeftExpression(GenerateExpression(inNode.Left))
-                        .WithRightCollectionConstantNode(inNode.Right as CollectionConstantNode)
+                        .WithLeftExpression(leftExpression)
+                        .WithRightCollectionConstantNode((inNode.Right as CollectionConstantNode)!)
                         .Build();
                 }
                 case UnaryOperatorNode unaryOperatorNode:
                 {
-                    var operandExpression = GenerateExpression(unaryOperatorNode.Operand);
+                    var operandExpression = GenerateExpression(unaryOperatorNode.Operand, parameterExpression);
                     return Expression.Not(operandExpression);
+                }
+                case AnyNode anyNode:
+                {
+                    return AnyExpressionBuilder.New()
+                        .WithAnyNode(anyNode)
+                        .WithSourceExpression(GenerateExpression(anyNode.Source, parameterExpression))
+                        .Build();
                 }
                 default: throw new NotImplementedException(odataSingleValueNode.Kind.ToString());
             }
         }
 
-        private SingleValueNode GetOdataSingleValueNode(ODataQueryOptions<TEntityType> oDataQueryOptions)
+        public Expression GenerateExpression(CollectionNode odataCollectionNode, ParameterExpression paramExpression)
+        {
+            switch (odataCollectionNode)
+            {
+                case CollectionNavigationNode collectionNavigationNode:
+                {
+                    return Expression.Property(paramExpression, collectionNavigationNode.NavigationProperty.Name);
+                }
+                case CollectionPropertyAccessNode collectionPropertyAccessNode:
+                {
+                    return Expression.Property(paramExpression, collectionPropertyAccessNode.Property.Name);
+                }
+                case CollectionConstantNode collectionConstantNode:
+                {
+                    return ConstantExpressionBuilder.New()
+                        .WithCollectionConstantNode(collectionConstantNode)
+                        .Build();
+                }
+                default: throw new NotImplementedException(odataCollectionNode.Kind.ToString());
+            }
+        }
+
+
+        private SingleValueNode GetOdataSingleValueNode<TEntityType>(
+            ODataQueryOptions oDataQueryOptions
+        ) where TEntityType : class
         {
             var modelBuilder = new ODataConventionModelBuilder();
             modelBuilder.EntityType<TEntityType>();

@@ -1,15 +1,16 @@
 ﻿using System;
-using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.OData;
 using Microsoft.OData.Edm;
 using Microsoft.OData.UriParser;
+using ODataStringToExpression.Extensions;
 
 namespace ODataStringToExpression.ExpressionBuilders;
 
 public class ConstantExpressionBuilder
 {
     private ConstantNode _constantNode;
+    private CollectionConstantNode _collectionConstantNode;
 
     private ConstantExpressionBuilder()
     {
@@ -23,11 +24,34 @@ public class ConstantExpressionBuilder
         return this;
     }
 
+    public ConstantExpressionBuilder WithCollectionConstantNode(CollectionConstantNode collectionConstantNode)
+    {
+        _collectionConstantNode = collectionConstantNode;
+        return this;
+    }
+
     public ConstantExpression Build()
+    {
+        if (_constantNode is not null && _collectionConstantNode is not null)
+            throw new InvalidOperationException("ConstantNode and CollectionConstantNode cannot both be set.");
+
+        if (_constantNode is not null)
+        {
+            return BuildSingleConstantExpression();
+        }
+        else if (_collectionConstantNode is not null)
+        {
+            return BuildCollectionConstantExpression();
+        }
+        else
+            throw new InvalidOperationException("Either ConstantNode or CollectionConstantNode must be set.");
+    }
+
+    private ConstantExpression BuildSingleConstantExpression()
     {
         if (_constantNode.Value is ODataEnumValue enumValue)
         {
-            var enumType = GetEnumTypeFromTypeName(enumValue.TypeName);
+            var enumType = AppDomain.CurrentDomain.GetType(enumValue.TypeName);
 
             if (enumType is null)
             {
@@ -38,7 +62,7 @@ public class ConstantExpressionBuilder
         }
         else if (_constantNode.Value is DateTimeOffset dateTimeOffset)
         {
-            var dateTimeValue = Convert.ToDateTime(dateTimeOffset.ToString());
+            var dateTimeValue = dateTimeOffset.UtcDateTime;
             return Expression.Constant(dateTimeValue, typeof(DateTime));
         }
         else if (_constantNode.Value is Date date)
@@ -50,9 +74,9 @@ public class ConstantExpressionBuilder
         return Expression.Constant(_constantNode.Value);
     }
 
-    private Type GetEnumTypeFromTypeName(string typeName)
+    private ConstantExpression BuildCollectionConstantExpression()
     {
-        return AppDomain.CurrentDomain.GetAssemblies().SelectMany(assembly => assembly.GetTypes())
-            .FirstOrDefault(type => type.IsEnum && type.FullName == typeName);
+        // return Expression.Constant()
+        throw new NotImplementedException();
     }
 }
