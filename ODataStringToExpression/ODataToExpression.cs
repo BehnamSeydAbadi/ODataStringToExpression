@@ -7,7 +7,6 @@ using Microsoft.AspNet.OData.Query;
 using Microsoft.OData.Edm;
 using Microsoft.OData.UriParser;
 using ODataStringToExpression.ExpressionBuilders;
-using ODataStringToExpression.Extensions;
 
 namespace ODataStringToExpression
 {
@@ -17,7 +16,8 @@ namespace ODataStringToExpression
             string query, ParameterExpression? parameterExpression = null
         ) where TEntityType : class
         {
-            var paramExpression = parameterExpression ?? Expression.Parameter(typeof(TEntityType), $"default_{Guid.NewGuid()}");
+            var paramExpression = parameterExpression ??
+                                  Expression.Parameter(typeof(TEntityType), $"default_{Guid.NewGuid()}");
 
             var oDataQueryOptions = ODataQueryOptionsBuilder<TEntityType>.New().WithQuery(query).Build();
 
@@ -28,7 +28,8 @@ namespace ODataStringToExpression
             return Expression.Lambda<Func<TEntityType, bool>>(expression, paramExpression).Compile();
         }
 
-        public Expression GenerateExpression(SingleValueNode odataSingleValueNode, ParameterExpression parameterExpression)
+        public Expression GenerateExpression(SingleValueNode odataSingleValueNode,
+            ParameterExpression parameterExpression)
         {
             switch (odataSingleValueNode)
             {
@@ -73,6 +74,13 @@ namespace ODataStringToExpression
                         .WithSourceExpression(GenerateExpression(anyNode.Source, parameterExpression))
                         .Build();
                 }
+                case AllNode allNode:
+                {
+                    return AllExpressionBuilder.New()
+                        .WithAnyNode(allNode)
+                        .WithSourceExpression(GenerateExpression(allNode.Source, parameterExpression))
+                        .Build();
+                }
                 default: throw new NotImplementedException(odataSingleValueNode.Kind.ToString());
             }
         }
@@ -108,7 +116,8 @@ namespace ODataStringToExpression
             modelBuilder.EntityType<TEntityType>();
             var edmModel = modelBuilder.GetEdmModel();
 
-            var entityType = edmModel.SchemaElements.OfType<IEdmEntityType>().First(e => e.Name == typeof(TEntityType).Name);
+            var entityType = edmModel.SchemaElements.OfType<IEdmEntityType>()
+                .First(e => e.Name == typeof(TEntityType).Name);
 
             var dictionary = new Dictionary<string, string>();
 
