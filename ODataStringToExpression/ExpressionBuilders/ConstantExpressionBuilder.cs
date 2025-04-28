@@ -5,7 +5,7 @@ using Microsoft.OData;
 using Microsoft.OData.Edm;
 using Microsoft.OData.UriParser;
 
-namespace ODataStringToExpression;
+namespace ODataStringToExpression.ExpressionBuilders;
 
 public class ConstantExpressionBuilder
 {

@@ -1,11 +1,14 @@
-﻿namespace ODataStringToExpression.Test;
+﻿using ODataStringToExpression.Test.Entities;
+using ODataStringToExpression.Test.Entities.Product;
 
-public class ODataToExpressionUsingMicrosoftOdataCoreTests
+namespace ODataStringToExpression.Test;
+
+public class ODataToExpressionTests
 {
     [Fact]
     public void Price_eq_5()
     {
-        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert("?$filter=Price eq 5");
+        var expecting = new ODataToExpression<ProductEntity>().Convert("?$filter=Price eq 5");
 
         Assert(expecting, expected: p => p.Price == 5);
     }
@@ -13,7 +16,7 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
     [Fact]
     public void Price_ne_5()
     {
-        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert("?$filter=Price ne 5");
+        var expecting = new ODataToExpression<ProductEntity>().Convert("?$filter=Price ne 5");
 
         Assert(expecting, expected: p => p.Price != 5);
     }
@@ -21,7 +24,7 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
     [Fact]
     public void Price_gt_10()
     {
-        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert("?$filter=Price gt 10");
+        var expecting = new ODataToExpression<ProductEntity>().Convert("?$filter=Price gt 10");
 
         Assert(expecting, expected: p => p.Price > 10);
     }
@@ -29,7 +32,7 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
     [Fact]
     public void Price_ge_10()
     {
-        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert("?$filter=Price ge 10");
+        var expecting = new ODataToExpression<ProductEntity>().Convert("?$filter=Price ge 10");
 
         Assert(expecting, expected: p => p.Price >= 10);
     }
@@ -37,7 +40,7 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
     [Fact]
     public void Price_lt_20()
     {
-        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert("?$filter=Price lt 20");
+        var expecting = new ODataToExpression<ProductEntity>().Convert("?$filter=Price lt 20");
 
         Assert(expecting, expected: p => p.Price < 20);
     }
@@ -45,7 +48,7 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
     [Fact]
     public void Price_le_20()
     {
-        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert("?$filter=Price le 20");
+        var expecting = new ODataToExpression<ProductEntity>().Convert("?$filter=Price le 20");
 
         Assert(expecting, expected: p => p.Price <= 20);
     }
@@ -53,7 +56,7 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
     [Fact]
     public void Price_gt_10_and_lt_20()
     {
-        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert("?$filter=Price gt 10 and Price lt 20");
+        var expecting = new ODataToExpression<ProductEntity>().Convert("?$filter=Price gt 10 and Price lt 20");
 
         Assert(expecting, expected: p => p.Price > 10 && p.Price < 20);
     }
@@ -61,7 +64,7 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
     [Fact]
     public void Price_gt_10_or_lt_20()
     {
-        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert("?$filter=Price gt 10 or Price lt 20");
+        var expecting = new ODataToExpression<ProductEntity>().Convert("?$filter=Price gt 10 or Price lt 20");
 
         Assert(expecting, expected: p => p.Price > 10 || p.Price < 20);
     }
@@ -69,7 +72,7 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
     [Fact]
     public void Status_eq_available()
     {
-        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert(
+        var expecting = new ODataToExpression<ProductEntity>().Convert(
             $"?$filter=Status eq {(int)ProductStatus.Available}"
         );
 
@@ -79,7 +82,7 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
     [Fact]
     public void Price_gt_5_and_Price_le_20_Status_eq_Available()
     {
-        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert(
+        var expecting = new ODataToExpression<ProductEntity>().Convert(
             $"?$filter=Price gt 5 and Price le 20 and Status eq {(int)ProductStatus.Available}"
         );
 
@@ -89,7 +92,7 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
     [Fact]
     public void CreateDate_eq_2014_06_26T03_30_00_000Z()
     {
-        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert(
+        var expecting = new ODataToExpression<ProductEntity>().Convert(
             "?$filter=CreateDate eq 2014-06-26T03:30:00.000Z"
         );
 
@@ -101,7 +104,7 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
     [Fact]
     public void CreateDate_eq_2014_06_26()
     {
-        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert(
+        var expecting = new ODataToExpression<ProductEntity>().Convert(
             "?$filter=CreateDate eq 2014-06-26"
         );
 
@@ -113,7 +116,7 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
     [Fact]
     public void Status_in_1_2()
     {
-        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert(
+        var expecting = new ODataToExpression<ProductEntity>().Convert(
             $"?$filter=Status in ('{(int)ProductStatus.Available}', '{(int)ProductStatus.SoldOut}')"
         );
 
@@ -125,7 +128,7 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
     [Fact]
     public void Status_not_in_1_2()
     {
-        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert(
+        var expecting = new ODataToExpression<ProductEntity>().Convert(
             $"?$filter=not (Status in ('{(int)ProductStatus.Available}', '{(int)ProductStatus.SoldOut}'))"
         );
 
@@ -137,7 +140,7 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
     [Fact]
     public void Price_gt_5_or_Status_eq_SoldOut()
     {
-        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert(
+        var expecting = new ODataToExpression<ProductEntity>().Convert(
             $"?$filter=Price gt 5 or Status eq '{(int)ProductStatus.SoldOut}'"
         );
 
@@ -147,7 +150,7 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
     [Fact]
     public void Price_gt_5_and_Status_eq_Available_or_Price_le_20()
     {
-        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert(
+        var expecting = new ODataToExpression<ProductEntity>().Convert(
             $"?$filter=Price gt 5 and (Status eq '{(int)ProductStatus.Available}' or Price le 20)"
         );
 
@@ -157,7 +160,7 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
     [Fact]
     public void CreateDate_gt_2014_06_26T03_30_00_000Z_and_Status_eq_Available()
     {
-        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert(
+        var expecting = new ODataToExpression<ProductEntity>().Convert(
             $"?$filter=CreateDate gt 2014-06-26T03:30:00.000Z and Status eq {(int)ProductStatus.Available}"
         );
 
@@ -169,7 +172,7 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
     [Fact]
     public void Price_gt_5_and_Price_le_20_or_Status_eq_Available_and_CreateDate_eq_2014_06_26()
     {
-        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert(
+        var expecting = new ODataToExpression<ProductEntity>().Convert(
             $"?$filter=Price gt 5 and Price le 20 or (Status eq {(int)ProductStatus.Available} and CreateDate eq 2014-06-26)"
         );
 
@@ -182,7 +185,7 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
     [Fact]
     public void Price_le_20_or_Status_in_Available_SoldOut_and_CreateDate_eq_2014_06_26()
     {
-        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert(
+        var expecting = new ODataToExpression<ProductEntity>().Convert(
             $"?$filter=Price le 20 or (Status in ('{(int)ProductStatus.Available}', '{(int)ProductStatus.SoldOut}') and CreateDate eq 2014-06-26)"
         );
 
@@ -196,7 +199,7 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
     [Fact]
     public void Complex_filter_with_not_equal_in_and_or_gt_le()
     {
-        var expecting = new ODataToExpressionUsingMicrosoftOdataCore<Product>().Convert(
+        var expecting = new ODataToExpression<ProductEntity>().Convert(
             $"?$filter=not (Status eq {(int)ProductStatus.NotAvailable}) and (Price gt 100 or Price le 50) and (Category in ('Electronics', 'Books'))"
         );
 
@@ -211,9 +214,9 @@ public class ODataToExpressionUsingMicrosoftOdataCoreTests
     }
 
 
-    private static void Assert(Func<Product, bool> expecting, Func<Product, bool> expected)
+    private static void Assert(Func<ProductEntity, bool> expecting, Func<ProductEntity, bool> expected)
     {
-        var product = new Product
+        var product = new ProductEntity
         {
             Price = 10,
             Status = ProductStatus.Available,

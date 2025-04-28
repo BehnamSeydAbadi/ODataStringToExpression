@@ -11,7 +11,7 @@ using Microsoft.OData.Edm;
 using Microsoft.OData.UriParser;
 using MicrosoftAspNetODataRoutingODataPath = Microsoft.AspNet.OData.Routing.ODataPath;
 
-namespace ODataStringToExpression;
+namespace ODataStringToExpression.ExpressionBuilders;
 
 public class ODataQueryOptionsBuilder<TEntity> where TEntity : class
 {

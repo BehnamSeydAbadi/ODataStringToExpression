@@ -2,7 +2,7 @@
 using System.Linq.Expressions;
 using Microsoft.OData.UriParser;
 
-namespace ODataStringToExpression
+namespace ODataStringToExpression.ExpressionBuilders
 {
     internal class BinaryExpressionBuilder
     {

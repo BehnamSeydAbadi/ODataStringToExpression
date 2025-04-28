@@ -3,7 +3,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.OData.UriParser;
 
-namespace ODataStringToExpression;
+namespace ODataStringToExpression.ExpressionBuilders;
 
 public class ContainExpressionBuilder
 {
