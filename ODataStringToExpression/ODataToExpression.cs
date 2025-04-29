@@ -7,6 +7,7 @@ using Microsoft.AspNet.OData.Query;
 using Microsoft.OData.Edm;
 using Microsoft.OData.UriParser;
 using ODataStringToExpression.ExpressionBuilders;
+using ODataStringToExpression.Extensions;
 
 namespace ODataStringToExpression
 {
@@ -35,11 +36,18 @@ namespace ODataStringToExpression
             {
                 case BinaryOperatorNode binaryOperatorNode:
                 {
-                    return BinaryExpressionBuilder.New().Build(
-                        binaryOperatorNode.OperatorKind,
-                        GenerateExpression(binaryOperatorNode.Left, parameterExpression),
-                        GenerateExpression(binaryOperatorNode.Right, parameterExpression)
-                    );
+                    var leftExpression = GenerateExpression(binaryOperatorNode.Left, parameterExpression);
+                    var rightExpression = GenerateExpression(binaryOperatorNode.Right, parameterExpression);
+
+                    if (leftExpression.Type.IsNumericType() && rightExpression.Type.IsNumericType())
+                    {
+                        var unifiedNumericTypeExpressions = NumericTypeExpressionUnifier.New().Unify(leftExpression, rightExpression);
+
+                        leftExpression = unifiedNumericTypeExpressions.Left;
+                        rightExpression = unifiedNumericTypeExpressions.Right;
+                    }
+
+                    return BinaryExpressionBuilder.New().Build(binaryOperatorNode.OperatorKind, leftExpression, rightExpression);
                 }
                 case SingleValuePropertyAccessNode singleValuePropertyAccessNode:
                 {
@@ -71,26 +79,27 @@ namespace ODataStringToExpression
                 {
                     return AnyExpressionBuilder.New()
                         .WithAnyNode(anyNode)
-                        .WithSourceExpression(GenerateExpression(anyNode.Source, parameterExpression))
+                        .WithSourceExpression(GenerateCollectionPropertyExpression(anyNode.Source, parameterExpression))
                         .Build();
                 }
                 case AllNode allNode:
                 {
                     return AllExpressionBuilder.New()
                         .WithAnyNode(allNode)
-                        .WithSourceExpression(GenerateExpression(allNode.Source, parameterExpression))
+                        .WithSourceExpression(GenerateCollectionPropertyExpression(allNode.Source, parameterExpression))
                         .Build();
                 }
                 case CountNode countNode:
                 {
-                    var sourceExpression = GenerateExpression(countNode.Source, parameterExpression);
+                    var sourceExpression = GenerateCollectionPropertyExpression(countNode.Source, parameterExpression);
                     return Expression.Property(sourceExpression, "Count");
                 }
                 default: throw new NotImplementedException(odataSingleValueNode.Kind.ToString());
             }
         }
 
-        public Expression GenerateExpression(CollectionNode odataCollectionNode, ParameterExpression paramExpression)
+
+        private Expression GenerateCollectionPropertyExpression(CollectionNode odataCollectionNode, ParameterExpression paramExpression)
         {
             switch (odataCollectionNode)
             {
@@ -111,7 +120,6 @@ namespace ODataStringToExpression
                 default: throw new NotImplementedException(odataCollectionNode.Kind.ToString());
             }
         }
-
 
         private SingleValueNode GetOdataSingleValueNode<TEntityType>(
             ODataQueryOptions oDataQueryOptions
