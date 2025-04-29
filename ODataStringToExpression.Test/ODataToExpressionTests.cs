@@ -348,6 +348,20 @@ public class ODataToExpressionTests
         );
     }
 
+    [Fact]
+    public void Inventory_filter_products_count_gt_5()
+    {
+        var expecting = new ODataToExpression().Convert<InventoryEntity>(
+            $"?$filter=Products/$count gt 5"
+        );
+
+        Assert(
+            expecting,
+            expected: e => e.Products.Count() > 5,
+            CreateInventoryEntity()
+        );
+    }
+
 
     private static void Assert<TEntity>(Func<TEntity, bool> expecting, Func<TEntity, bool> expected,
         TEntity entityModel)

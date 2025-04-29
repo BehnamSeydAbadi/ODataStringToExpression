@@ -81,6 +81,11 @@ namespace ODataStringToExpression
                         .WithSourceExpression(GenerateExpression(allNode.Source, parameterExpression))
                         .Build();
                 }
+                case CountNode countNode:
+                {
+                    var sourceExpression = GenerateExpression(countNode.Source, parameterExpression);
+                    return Expression.Property(sourceExpression, "Count");
+                }
                 default: throw new NotImplementedException(odataSingleValueNode.Kind.ToString());
             }
         }
